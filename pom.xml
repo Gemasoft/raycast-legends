@@ -33,13 +33,7 @@
         <dependency>
             <groupId>com.github.almasb</groupId>
             <artifactId>fxgl</artifactId>
-            <version>17.2</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.openjfx</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>17.1</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

@@ -11,6 +11,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -27,7 +28,7 @@ public class HelloApplication extends GameApplication {
     private static final int WINDOW_HEIGHT = 600;
     private int score = 0;
     private Text scoreText;
-    private List<Rectangle> enemies = new ArrayList<>();
+    private final List<Rectangle> enemies = new ArrayList<>();
     private Text roundText;
     private int round = 1;
     private TimerAction roundTimer;
@@ -36,7 +37,13 @@ public class HelloApplication extends GameApplication {
     private static final String MOVE_UP = "Move Up";
     private static final String MOVE_DOWN = "Move Down";
     private static final String ROUND_MESSAGE = "La siguiente ronda comienza en ";
-    private Random random = new Random();
+    private final Random random = new Random();
+    private static final double ENEMY_SPEED = 2.5;
+    private static final double SAFE_DISTANCE = 100; // La distancia a la que los enemigos empiezan a huir
+    private static final double ENEMY_WANDER_SPEED = 1.0;
+    private LocalTime startTime;
+    private Text timerText;
+
 
     @Override
     protected void initSettings(GameSettings settings) {
@@ -59,6 +66,9 @@ public class HelloApplication extends GameApplication {
         createEnemies(1);
 
         initScoreCounter();
+
+        initTimerDisplay();
+
     }
 
     private void initScoreCounter() {
@@ -73,7 +83,59 @@ public class HelloApplication extends GameApplication {
     @Override
     protected void onUpdate(double tpf) {
         checkCollisions();
+        moveEnemies();
+        updateTimer();
+
     }
+
+    private void initTimerDisplay() {
+        timerText = FXGL.getUIFactoryService().newText("", Color.BLACK, 20.0);
+        timerText.setTranslateX(15); // Ajusta según tus necesidades
+        timerText.setTranslateY(50); // Ajusta según tus necesidades
+        FXGL.getGameScene().addUINode(timerText);
+    }
+
+    private void updateTimer() {
+        if (!enemies.isEmpty()) {
+            LocalTime now = LocalTime.now();
+            Duration duration = new Duration(1);
+            long seconds = (long) duration.toSeconds();
+            long absSeconds = Math.abs(seconds);
+            String time = String.format(
+                    "%02d:%02d",
+                    (absSeconds / 3600),
+                    ((absSeconds % 3600) / 60)
+            );
+            timerText.setText("Tiempo: " + time);
+        }
+    }
+
+
+    private void moveEnemies() {
+        for (Rectangle enemy : enemies) {
+            double dx = enemy.getX() - square.getX();
+            double dy = enemy.getY() - square.getY();
+            double distance = Math.sqrt(dx * dx + dy * dy);
+
+            double angle;
+            if (distance < SAFE_DISTANCE) {
+                // Calcular ángulo para huir del jugador
+                angle = Math.atan2(dy, dx); // Agregar Math.PI para invertir la dirección
+            } else {
+                // Movimiento aleatorio
+                angle = random.nextDouble() * 2 * Math.PI;
+            }
+
+            // Aplicar el movimiento
+            enemy.setX(enemy.getX() + Math.cos(angle) * (distance < SAFE_DISTANCE ? ENEMY_SPEED : ENEMY_WANDER_SPEED));
+            enemy.setY(enemy.getY() + Math.sin(angle) * (distance < SAFE_DISTANCE ? ENEMY_SPEED : ENEMY_WANDER_SPEED));
+
+            // Mantener a los enemigos dentro de los límites de la ventana
+            enemy.setX(Math.max(0, Math.min(enemy.getX(), WINDOW_WIDTH - ENEMY_SIZE)));
+            enemy.setY(Math.max(0, Math.min(enemy.getY(), WINDOW_HEIGHT - ENEMY_SIZE)));
+        }
+    }
+
 
     private void checkCollisions() {
         Iterator<Rectangle> iterator = enemies.iterator();
