@@ -3,6 +3,8 @@ package com.gemasoft.gema_engine;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -77,6 +79,13 @@ public class DoomStyleGame extends Application {
         };
         timer.start();
 
+        // Manejador de eventos para la combinación de teclas Ctrl-F
+        scene.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
+            if (event.isControlDown() && event.getCode() == KeyCode.F) {
+                primaryStage.setFullScreen(!primaryStage.isFullScreen()); // Cambia el estado de pantalla completa
+            }
+        });
+
         primaryStage.setTitle("Doom Style Game");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -120,15 +129,19 @@ public class DoomStyleGame extends Application {
     }
 
     private void movePlayer(double dx, double dy) {
-        double newX = playerPosX + dx;
-        double newY = playerPosY + dy;
-
-        if (canMoveTo(newX, newY)) {
-            playerPosX = newX;
-            playerPosY = newY;
-            player.setCenterX(playerPosX * TILE_SIZE + TILE_SIZE / 10.0);
-            player.setCenterY(playerPosY * TILE_SIZE + TILE_SIZE / 20.0);
+        // Intentar mover en X
+        if (canMoveTo(playerPosX + dx, playerPosY)) {
+            playerPosX += dx;
         }
+
+        // Intentar mover en Y
+        if (canMoveTo(playerPosX, playerPosY + dy)) {
+            playerPosY += dy;
+        }
+
+        // Actualizar la posición del jugador
+        player.setCenterX(playerPosX * TILE_SIZE + TILE_SIZE / 10.0);
+        player.setCenterY(playerPosY * TILE_SIZE + TILE_SIZE / 20.0);
     }
 
     private boolean canMoveTo(double x, double y) {
@@ -204,10 +217,6 @@ public class DoomStyleGame extends Application {
         }
     }
 
-
-
-
-
     // Modificar el AnimationTimer para dibujar los rayos
     AnimationTimer timer = new AnimationTimer() {
         @Override
@@ -216,25 +225,6 @@ public class DoomStyleGame extends Application {
             //drawRays(); // Dibujar todos los rayos
         }
     };
-
-
-    // Métodos adicionales dentro de la clase DoomStyleGame
-
-    private void initializePlayer() {
-        // Inicializa la posición y dirección del jugador
-    }
-
-    private void addMovementControls() {
-        // Añade controles para el movimiento del jugador
-    }
-
-    private void performRayCasting() {
-        // Realiza cálculos de raycasting para la vista en primera persona
-    }
-
-    private void draw3DView() {
-        // Dibuja la vista 3D basada en los cálculos de raycasting
-    }
 
     public static void main(String[] args) {
         launch(args);
