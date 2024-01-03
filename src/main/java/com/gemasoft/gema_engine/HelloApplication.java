@@ -11,7 +11,6 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -41,7 +40,6 @@ public class HelloApplication extends GameApplication {
     private static final double ENEMY_SPEED = 2.5;
     private static final double SAFE_DISTANCE = 100; // La distancia a la que los enemigos empiezan a huir
     private static final double ENEMY_WANDER_SPEED = 1.0;
-    private LocalTime startTime;
     private Text timerText;
 
 
@@ -97,7 +95,6 @@ public class HelloApplication extends GameApplication {
 
     private void updateTimer() {
         if (!enemies.isEmpty()) {
-            LocalTime now = LocalTime.now();
             Duration duration = new Duration(1);
             long seconds = (long) duration.toSeconds();
             long absSeconds = Math.abs(seconds);

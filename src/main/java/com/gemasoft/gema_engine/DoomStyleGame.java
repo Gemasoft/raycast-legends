@@ -3,7 +3,6 @@ package com.gemasoft.gema_engine;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
@@ -51,25 +50,23 @@ public class DoomStyleGame extends Application {
     };
     private Circle player;
     private final Set<String> input = new HashSet<>();
-    private Line ray;
-    private static final double ROTATION_SPEED = 2.0; // Velocidad de rotación
     private double playerDirection = 0; // Ángulo de dirección del jugador en grados
-    private static final int NUM_RAYS = 640;
+    private static final int NUM_RAYS = 800;
     private static final double FOV = 70; // Campo de visión de 90 grados
     private Pane screenLayer;
-    private static int SCREEN_WIDTH = 640;
-    private static int SCREEN_HEIGHT = 480;
+    private static final int SCREEN_WIDTH = 800;
+    private static final int SCREEN_HEIGHT = 600;
     private static final double MAX_RAY_DISTANCE = 20.0; // Máxima distancia efectiva para el cálculo de la altura
-    private boolean showFPS = false; // Variable para controlar la visibilidad del contador de FPS
-    private Text fpsText = new Text(); // Texto para mostrar los FPS
-    private static final double JUMP_SPEED = 5; // Velocidad inicial del salto
-    private static final double GRAVITY = 0.3; // Gravedad que afecta al jugador después de saltar
-    private boolean isJumping = false;
-    private double verticalSpeed = 0; // Velocidad vertical actual del jugador
+    private final boolean showFPS = false; // Variable para controlar la visibilidad del contador de FPS
+    private final Text fpsText = new Text(); // Texto para mostrar los FPS
+    //private static final double JUMP_SPEED = 5; // Velocidad inicial del salto
+    //private static final double GRAVITY = 0.3; // Gravedad que afecta al jugador después de saltar
+    //private boolean isJumping = false;
+    //private double verticalSpeed = 0; // Velocidad vertical actual del jugador
 
     // Cargar la textura
-    Image floorTexture = new Image("C:/Users/m1gmartin/IdeaProjects/GemaEngine/src/main/resources/wall_2.jpg");
-    Image textures = new Image("C:/Users/m1gmartin/IdeaProjects/GemaEngine/src/main/resources/wolftextures.png");
+    //Image floorTexture = new Image("C:/Users/m1gmartin/IdeaProjects/GemaEngine/src/main/resources/wall_2.jpg");
+    //Image textures = new Image("C:/Users/m1gmartin/IdeaProjects/GemaEngine/src/main/resources/wolftextures.png");
 
 
     @Override
@@ -77,7 +74,7 @@ public class DoomStyleGame extends Application {
         Pane root = new Pane();
         drawMap(root);
 
-        Texture text = new Texture("C:/Users/m1gmartin/IdeaProjects/GemaEngine/src/main/resources/eagle.png", 64);
+        //Texture text = new Texture("C:/Users/m1gmartin/IdeaProjects/GemaEngine/src/main/resources/eagle.png", 64);
 
         player = new Circle(playerPosX * TILE_SIZE + TILE_SIZE / 2.0,
                 playerPosY * TILE_SIZE + TILE_SIZE / 2.0,
@@ -145,26 +142,21 @@ public class DoomStyleGame extends Application {
                 Rectangle rect = new Rectangle(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
                  int wallType = MAP[y][x];
 
-                switch (wallType){
-                    case 1: {
+                switch (wallType) {
+                    case 1 -> {
                         rect.setFill(Color.BLACK);
-                        break;
                     }
-                    case 2: {
+                    case 2 -> {
                         rect.setFill(Color.RED);
-                        break;
                     }
-                    case 3: {
+                    case 3 -> {
                         rect.setFill(Color.GREEN);
-                        break;
                     }
-                    case 4: {
+                    case 4 -> {
                         rect.setFill(Color.BLUEVIOLET);
-                        break;
                     }
-                    default:{
+                    default -> {
                         rect.setFill(Color.WHITE);
-                        break;
                     }
                 }
                 root.getChildren().add(rect);
@@ -173,9 +165,19 @@ public class DoomStyleGame extends Application {
     }
 
     // Método para alternar la visibilidad del contador de FPS
-    public void toggleFPSDisplay() {
-        showFPS = !showFPS;
-    }
+    //public void toggleFPSDisplay() {
+        //showFPS = !showFPS;
+    //}
+
+    //public void playMusic(){
+        /*
+         // Cargar y reproducir la música de fondo
+         Media md = new Media(new File("path/to/your/music.mp3").toURI().toString());
+         MediaPlayer mediaPlayer = new MediaPlayer(md);
+         mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE); // Establecer para reproducir en bucle
+         mediaPlayer.play();
+        */
+    //}
 
     private void updatePlayerPosition() {
         double dx = 0, dy = 0;
@@ -252,8 +254,8 @@ public class DoomStyleGame extends Application {
             double rayAngle = startAngle + i * angleStep;
             double rayLength = 0;
             boolean hitWall = false;
+            boolean hitGreenWall = false;
             boolean hitTexturedWall = false;
-            int wallType;
 
             while (!hitWall) {
                 double checkX = playerPosX + rayLength * Math.cos(Math.toRadians(rayAngle));
@@ -268,15 +270,16 @@ public class DoomStyleGame extends Application {
                     hitWall = true;
                 } else if (MAP[mapY][mapX] == 2) {
                     hitWall = true;
-                    //hitTexturedWall = true;
+                    hitTexturedWall = true;
                 }else if (MAP[mapY][mapX] == 3) {
                     hitWall = true;
+                    hitGreenWall = true;
                 }else if (MAP[mapY][mapX] == 4) {
                     hitWall = true;
                 }
-
+                //Cambiar grosor de lineas verticales (muros)
                 if (!hitWall) {
-                    rayLength += 0.1;
+                    rayLength += 0.05;
                 }
             }
 
@@ -284,14 +287,20 @@ public class DoomStyleGame extends Application {
             double lineHeight = SCREEN_HEIGHT / (Math.min(correctedRayLength, MAX_RAY_DISTANCE));
             double lineTop = (SCREEN_HEIGHT - lineHeight) / 2;
 
+            // Ajustar el color basándose en la distancia
+            double brightness = 1.0 - Math.min(1.0, correctedRayLength / MAX_RAY_DISTANCE);
+            Color wallColor = hitGreenWall ? Color.GREEN : Color.BLUE;
+            wallColor = wallColor.deriveColor(0, 1, brightness, 1);
+
             if (hitTexturedWall) {
                 // Aquí deberías calcular qué parte de la textura mapear y luego dibujarla.
                 // Este es un lugar donde necesitarás una lógica más compleja para mapear correctamente la textura.
-            } else {
+                System.getLogger("hit Texture");
+            } //else {
                 Line screenLine = new Line(i, lineTop, i, lineTop + lineHeight);
-                screenLine.setStroke(Color.RED); // Color para muros no texturizados
+            screenLine.setStroke(wallColor); // Color para muros no texturizados
                 screenLayer.getChildren().add(screenLine);
-            }
+            //}
 
             // Dibuja el piso
             Line floorLine = new Line(i, lineTop + lineHeight, i, SCREEN_HEIGHT);
@@ -304,7 +313,7 @@ public class DoomStyleGame extends Application {
     // Método para dibujar los rayos en el mini mapa
     private void castRays() {
         // Eliminar los rayos anteriores
-        ((Pane) player.getParent()).getChildren().removeIf(node -> node instanceof Line && node != player);
+        ((Pane) player.getParent()).getChildren().removeIf(node -> node instanceof Line);
 
         double angleStep = FOV / NUM_RAYS;
         double startAngle = playerDirection - FOV / 2;
