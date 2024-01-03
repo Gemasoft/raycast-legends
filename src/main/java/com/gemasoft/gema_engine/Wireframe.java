@@ -27,7 +27,6 @@ public class Wireframe extends Application {
         // Punto central (cúspide de la pirámide)
         double peakX = 50;
         double peakY = 43.3;
-        double peakZ = 75;
 
         // Crear líneas para formar la base del triángulo
         Line baseLine1 = new Line(xPoints[0], yPoints[0], xPoints[1], yPoints[1]);

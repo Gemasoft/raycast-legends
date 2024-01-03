@@ -107,7 +107,7 @@ public class DoomStyleGame extends Application {
             @Override
             public void handle(long now) {
                 updatePlayerPosition();
-                drawRays();
+                drawWalls();
                 castRays();
 
 
@@ -143,21 +143,11 @@ public class DoomStyleGame extends Application {
                  int wallType = MAP[y][x];
 
                 switch (wallType) {
-                    case 1 -> {
-                        rect.setFill(Color.BLACK);
-                    }
-                    case 2 -> {
-                        rect.setFill(Color.RED);
-                    }
-                    case 3 -> {
-                        rect.setFill(Color.GREEN);
-                    }
-                    case 4 -> {
-                        rect.setFill(Color.BLUEVIOLET);
-                    }
-                    default -> {
-                        rect.setFill(Color.WHITE);
-                    }
+                    case 1 -> rect.setFill(Color.BLACK);
+                    case 2 -> rect.setFill(Color.RED);
+                    case 3 -> rect.setFill(Color.GREEN);
+                    case 4 -> rect.setFill(Color.BLUEVIOLET);
+                    default -> rect.setFill(Color.WHITE);
                 }
                 root.getChildren().add(rect);
             }
@@ -244,8 +234,13 @@ public class DoomStyleGame extends Application {
 
     // Método para dibujar los rayos
 
-    private void drawRays() {
+    private void drawWalls() {
         screenLayer.getChildren().clear(); // Limpia la capa de pantalla para las líneas verticales
+
+        // Dibujar el cielo como un rectángulo
+        //Rectangle sky = new Rectangle(0, 0, SCREEN_WIDTH, (double) SCREEN_HEIGHT);
+        //sky.setFill(Color.NAVY); // Color azul marino para el cielo
+        //screenLayer.getChildren().add(sky);
 
         double angleStep = FOV / NUM_RAYS;
         double startAngle = playerDirection - FOV / 2;
@@ -253,11 +248,10 @@ public class DoomStyleGame extends Application {
         for (int i = 0; i < NUM_RAYS; i++) {
             double rayAngle = startAngle + i * angleStep;
             double rayLength = 0;
-            boolean hitWall = false;
-            boolean hitGreenWall = false;
+            int hitWall = 0;
             boolean hitTexturedWall = false;
 
-            while (!hitWall) {
+            while (hitWall == 0) {
                 double checkX = playerPosX + rayLength * Math.cos(Math.toRadians(rayAngle));
                 double checkY = playerPosY + rayLength * Math.sin(Math.toRadians(rayAngle));
 
@@ -265,21 +259,13 @@ public class DoomStyleGame extends Application {
                 int mapY = (int) checkY;
 
                 if (mapX < 0 || mapX >= MAP[0].length || mapY < 0 || mapY >= MAP.length) {
-                    hitWall = true;
-                } else if (MAP[mapY][mapX] == 1) {
-                    hitWall = true;
-                } else if (MAP[mapY][mapX] == 2) {
-                    hitWall = true;
-                    hitTexturedWall = true;
-                }else if (MAP[mapY][mapX] == 3) {
-                    hitWall = true;
-                    hitGreenWall = true;
-                }else if (MAP[mapY][mapX] == 4) {
-                    hitWall = true;
+                    hitWall = MAP[mapY][mapX];
+                } else if (MAP[mapY][mapX] > 0) {
+                    hitWall = MAP[mapY][mapX];
                 }
                 //Cambiar grosor de lineas verticales (muros)
-                if (!hitWall) {
-                    rayLength += 0.05;
+                if (hitWall == 0) {
+                    rayLength += 0.1;
                 }
             }
 
@@ -289,7 +275,14 @@ public class DoomStyleGame extends Application {
 
             // Ajustar el color basándose en la distancia
             double brightness = 1.0 - Math.min(1.0, correctedRayLength / MAX_RAY_DISTANCE);
-            Color wallColor = hitGreenWall ? Color.GREEN : Color.BLUE;
+            Color wallColor = Color.WHITE;
+            switch (hitWall){
+                case 1 -> wallColor = Color.BLUE;
+                case 2 -> wallColor = Color.RED;
+                case 3 -> wallColor = Color.GREEN;
+                case 4 -> wallColor = Color.PURPLE;
+            }
+
             wallColor = wallColor.deriveColor(0, 1, brightness, 1);
 
             if (hitTexturedWall) {

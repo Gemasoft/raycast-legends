@@ -4,11 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b9407a71-19fa-487a-8c25-1e3921229056" name="Changes" comment="Added basic texture handling and re added rays in mini map">
-      <change afterPath="$PROJECT_DIR$/src/main/resources/eagle.png" afterDir="false" />
+    <list default="true" id="b9407a71-19fa-487a-8c25-1e3921229056" name="Changes" comment="Added shadows at distance">
+      <change afterPath="$PROJECT_DIR$/logs/FXGL-03-ene.-2024-12.05.41.log" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/gemasoft/gema_engine/DoomStyleGame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/gemasoft/gema_engine/DoomStyleGame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/gemasoft/gema_engine/HelloApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/gemasoft/gema_engine/HelloApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/gemasoft/gema_engine/Texture.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/gemasoft/gema_engine/Texture.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/gemasoft/gema_engine/Wireframe.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/gemasoft/gema_engine/Wireframe.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -95,7 +96,15 @@
       <option name="project" value="LOCAL" />
       <updated>1704304120912</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Added shadows at distance">
+      <option name="closed" value="true" />
+      <created>1704305778254</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1704305778254</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -105,6 +114,7 @@
     <MESSAGE value="Added floor, fisheye effect correction, mouse controls added, different walls" />
     <MESSAGE value="Added full screen mode" />
     <MESSAGE value="Added basic texture handling and re added rays in mini map" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added basic texture handling and re added rays in mini map" />
+    <MESSAGE value="Added shadows at distance" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added shadows at distance" />
   </component>
 </project>

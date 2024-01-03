@@ -7,7 +7,7 @@ import javax.imageio.ImageIO;
 
 public class Texture {
     public int[] pixels;
-    private String loc;
+    private final String loc;
     public int SIZE;
 
     public Texture(String location, int size) {
