@@ -17,29 +17,32 @@ public class DoomStyleGame extends Application {
     // Posición inicial del jugador (x, y)
     private static double  playerPosX = 7; // Posición inicial X del jugador
     private static double  playerPosY = 5; // Posición inicial Y del jugador
-    private static final double MOVE_SPEED = 0.2; // Reducir velocidad a la mitad
+    private static final double MOVE_SPEED = 0.1; // Reducir velocidad a la mitad
 
     private static final int PLAYER_SIZE = 4; // Tamaño del punto que representa al jugador
 
     private static final int TILE_SIZE = 10;
     private static final int[][] MAP = {
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-            {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-            {1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1},
-            {1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1},
-            {1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-            {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-            {1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
+            {1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1 },
+            {1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1 },
+            {1, 1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1 },
+            {1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1 },
+            {1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
+            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }
     };
     private Circle player;
     private final Set<String> input = new HashSet<>();
     private Line ray;
     private static final double ROTATION_SPEED = 2.0; // Velocidad de rotación
     private double playerDirection = 0; // Ángulo de dirección del jugador en grados
-    private static final int NUM_RAYS = 256;
-    private static final double FOV = 90; // Campo de visión de 90 grados
-
+    private static final int NUM_RAYS = 640;
+    private static final double FOV = 70; // Campo de visión de 90 grados
+    private Pane screenLayer;
+    private static final int SCREEN_WIDTH = 640;
+    private static final int SCREEN_HEIGHT = 480;
+    private static final double MAX_RAY_DISTANCE = 20.0; // Máxima distancia efectiva para el cálculo de la altura
 
 
     @Override
@@ -52,15 +55,24 @@ public class DoomStyleGame extends Application {
                 PLAYER_SIZE, Color.RED);
         root.getChildren().add(player);
 
-        Scene scene = new Scene(root, 640, 480);
+        screenLayer = new Pane(); // Capa para las líneas verticales
+        screenLayer.setPrefSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+        root.getChildren().add(screenLayer);
+
+        Scene scene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
         scene.setOnKeyPressed(e -> input.add(e.getCode().toString()));
         scene.setOnKeyReleased(e -> input.remove(e.getCode().toString()));
+
+        scene.setOnMouseMoved(e -> {
+            double mouseX = e.getSceneX();
+            playerDirection = 360.0 / SCREEN_WIDTH * mouseX; // Ajusta la dirección basada en la posición del mouse
+        });
 
         AnimationTimer timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 updatePlayerPosition();
-                drawRays(); // Dibujar el rayo en cada actualización
+                drawRays();
             }
         };
         timer.start();
@@ -81,25 +93,30 @@ public class DoomStyleGame extends Application {
     }
 
     private void updatePlayerPosition() {
-        if (input.contains("A")) {
-            playerDirection -= ROTATION_SPEED;
-        }
-        if (input.contains("D")) {
-            playerDirection += ROTATION_SPEED;
-        }
-
         double dx = 0, dy = 0;
+
+        // Calcular la dirección de avance y retroceso
         if (input.contains("W")) {
-            dx = Math.cos(Math.toRadians(playerDirection)) * MOVE_SPEED;
-            dy = Math.sin(Math.toRadians(playerDirection)) * MOVE_SPEED;
+            dx += Math.cos(Math.toRadians(playerDirection)) * MOVE_SPEED;
+            dy += Math.sin(Math.toRadians(playerDirection)) * MOVE_SPEED;
         }
         if (input.contains("S")) {
-            dx = -Math.cos(Math.toRadians(playerDirection)) * MOVE_SPEED;
-            dy = -Math.sin(Math.toRadians(playerDirection)) * MOVE_SPEED;
+            dx -= Math.cos(Math.toRadians(playerDirection)) * MOVE_SPEED;
+            dy -= Math.sin(Math.toRadians(playerDirection)) * MOVE_SPEED;
+        }
+
+        // Calcular la dirección de movimiento lateral (strafe)
+        if (input.contains("A")) {
+            dx += Math.cos(Math.toRadians(playerDirection - 90)) * MOVE_SPEED;
+            dy += Math.sin(Math.toRadians(playerDirection - 90)) * MOVE_SPEED;
+        }
+        if (input.contains("D")) {
+            dx += Math.cos(Math.toRadians(playerDirection + 90)) * MOVE_SPEED;
+            dy += Math.sin(Math.toRadians(playerDirection + 90)) * MOVE_SPEED;
         }
 
         movePlayer(dx, dy);
-        drawRays(); // Asegúrate de redibujar el rayo con la nueva orientación
+        drawRays();
     }
 
     private void movePlayer(double dx, double dy) {
@@ -136,9 +153,9 @@ public class DoomStyleGame extends Application {
     }
 
     // Método para dibujar los rayos
+
     private void drawRays() {
-        // Eliminar los rayos anteriores
-        ((Pane) player.getParent()).getChildren().removeIf(node -> node instanceof Line && node != player);
+        screenLayer.getChildren().clear(); // Limpia la capa de pantalla para las líneas verticales
 
         double angleStep = FOV / NUM_RAYS;
         double startAngle = playerDirection - FOV / 2;
@@ -146,36 +163,57 @@ public class DoomStyleGame extends Application {
         for (int i = 0; i < NUM_RAYS; i++) {
             double rayAngle = startAngle + i * angleStep;
             double rayLength = 0;
+            boolean hitWall = false;
+            boolean hitGreenWall = false; // Indicador para un muro verde
 
-            while (true) {
+            while (!hitWall) {
                 double checkX = playerPosX + rayLength * Math.cos(Math.toRadians(rayAngle));
                 double checkY = playerPosY + rayLength * Math.sin(Math.toRadians(rayAngle));
 
                 int mapX = (int) checkX;
                 int mapY = (int) checkY;
 
-                if (mapX < 0 || mapX >= MAP[0].length || mapY < 0 || mapY >= MAP.length || MAP[mapY][mapX] == 1) {
-                    break;
+                if (mapX < 0 || mapX >= MAP[0].length || mapY < 0 || mapY >= MAP.length) {
+                    hitWall = true; // Golpea el límite del mapa
+                } else if (MAP[mapY][mapX] == 1) {
+                    hitWall = true; // Golpea un muro normal
+                } else if (MAP[mapY][mapX] == 2) {
+                    hitWall = true;
+                    hitGreenWall = true; // Golpea un muro verde
                 }
 
-                rayLength += 0.1;
+                if (!hitWall) {
+                    rayLength += 0.1;
+                }
             }
 
-            Line ray = new Line(player.getCenterX(), player.getCenterY(),
-                    player.getCenterX() + rayLength * TILE_SIZE * Math.cos(Math.toRadians(rayAngle)),
-                    player.getCenterY() + rayLength * TILE_SIZE * Math.sin(Math.toRadians(rayAngle)));
-            ray.setStroke(Color.LIGHTGRAY);
+            // Ajustar la longitud del rayo para corregir el efecto ojo de pez
+            double correctedRayLength = rayLength * Math.cos(Math.toRadians(rayAngle - playerDirection));
 
-            ((Pane) player.getParent()).getChildren().add(ray);
+            // Calcula y dibuja la línea vertical en la pantalla para representar las paredes
+            double lineHeight = SCREEN_HEIGHT / (correctedRayLength > MAX_RAY_DISTANCE ? MAX_RAY_DISTANCE : correctedRayLength);
+            double lineTop = (SCREEN_HEIGHT - lineHeight) / 2;
+            Line screenLine = new Line(i, lineTop, i, lineTop + lineHeight);
+            screenLine.setStroke(hitGreenWall ? Color.GREEN : Color.BLUE); // Color de las paredes
+            screenLayer.getChildren().add(screenLine);
+
+            // Dibuja el piso
+            Line floorLine = new Line(i, lineTop + lineHeight, i, SCREEN_HEIGHT);
+            floorLine.setStroke(Color.DARKGRAY); // Color del piso
+            screenLayer.getChildren().add(floorLine);
         }
     }
+
+
+
+
 
     // Modificar el AnimationTimer para dibujar los rayos
     AnimationTimer timer = new AnimationTimer() {
         @Override
         public void handle(long now) {
             updatePlayerPosition();
-            drawRays(); // Dibujar todos los rayos
+            //drawRays(); // Dibujar todos los rayos
         }
     };
 

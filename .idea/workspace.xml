@@ -4,23 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b9407a71-19fa-487a-8c25-1e3921229056" name="Changes" comment="Basic coin collector game generated">
-      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/FXGL-02-ene.-2024-09.37.32.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/FXGL-02-ene.-2024-09.38.38.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/FXGL-02-ene.-2024-09.45.29.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/FXGL-02-ene.-2024-10.32.52.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/FXGL-02-ene.-2024-11.15.43.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/FXGL-02-ene.-2024-12.02.08.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/FXGL-02-ene.-2024-12.19.08.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/gemasoft/gema_engine/DoomStyleGame.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/gemasoft/gema_engine/Wireframe.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/system/Readme.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/system/fxgl.bundle" afterDir="false" />
+    <list default="true" id="b9407a71-19fa-487a-8c25-1e3921229056" name="Changes" comment="Added mini map with collition and raycasting">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/gemasoft/gema_engine/HelloApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/gemasoft/gema_engine/HelloApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/gemasoft/gema_engine/DoomStyleGame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/gemasoft/gema_engine/DoomStyleGame.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -75,12 +61,21 @@
       <option name="project" value="LOCAL" />
       <updated>1704214341439</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Added mini map with collition and raycasting">
+      <option name="closed" value="true" />
+      <created>1704239492987</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1704239492987</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="Basic coin collector game generated" />
-    <option name="LAST_COMMIT_MESSAGE" value="Basic coin collector game generated" />
+    <MESSAGE value="Added mini map with collition and raycasting" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added mini map with collition and raycasting" />
   </component>
 </project>
