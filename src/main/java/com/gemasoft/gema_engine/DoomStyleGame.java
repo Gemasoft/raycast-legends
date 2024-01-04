@@ -82,7 +82,7 @@ public class DoomStyleGame extends Application {
     private boolean playerIsMoving;
 
     private void loadSwordImage() {
-        Image image = new Image("C:/Users/m1gmartin/IdeaProjects/GemaEngine/src/main/resources/gun.gif"); // Asegúrate de que la ruta sea correcta
+        Image image = new Image("/wingman.png");
         swordImage = new ImageView(image);
         swordImage.setX(250); // Establece la posición inicial X
         swordImage.setY(300); // Establece la posición inicial Y
@@ -199,7 +199,7 @@ public class DoomStyleGame extends Application {
         // ... carga de otros sprites ...
 
         // Cargar la imagen de la moneda
-        Image coinImage = new Image("C:/Users/m1gmartin/IdeaProjects/GemaEngine/src/main/resources/eagle.png");
+        Image coinImage = new Image("/eagle.png");
 
         // Suponiendo que el número 9 en el mapa representa una moneda
         for (int y = 0; y < MAP.length; y++) {
