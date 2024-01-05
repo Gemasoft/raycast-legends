@@ -73,7 +73,10 @@ public class DoomStyleGame extends Application {
     private GraphicsContext gc;
     private ImageView weaponImage;
     private boolean playerIsMoving;
-    private static final double VISION_ANGLE = 0;
+    private static double VISION_ANGLE = 0;
+    private double lastMouseY = -1; // Para rastrear la última posición Y del ratón
+    private final double ANGLE_CHANGE_FACTOR = 2; // Ajusta este valor según la sensibilidad deseada
+
     private static double MID_VERTICAL_SCREEN = (double) SCREEN_WIDTH / 2;
     private void loadWeaponImage() {
         Image image = new Image("/gun.gif"); // Asegúrate de que la ruta sea correcta
@@ -141,10 +144,25 @@ public class DoomStyleGame extends Application {
                 playerDirection += deltaX * ROTATION_FACTOR;
             }
 
+            if (lastMouseY >= 0) {
+                double deltaY = e.getSceneY() - lastMouseY;
+                // Aumentar/reducir VISION_ANGLE basado en el movimiento del ratón
+                VISION_ANGLE += deltaY * -ANGLE_CHANGE_FACTOR;
+
+                // Opcional: Limitar VISION_ANGLE a un rango específico
+                if (VISION_ANGLE > 700 ){
+                    VISION_ANGLE = 700;
+                } else if(VISION_ANGLE < -700){
+                    VISION_ANGLE = -700;
+                }
+            }
+
+
             if (!isMouseAtCenter(e)) {
                 centerMouse(primaryStage, scene);
             } else {
                 lastMouseX = e.getSceneX();
+                lastMouseY = e.getSceneY();
             }
         });
 
@@ -167,7 +185,7 @@ public class DoomStyleGame extends Application {
         scene.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
             if (event.isControlDown() && event.getCode() == KeyCode.F) {
                 primaryStage.setFullScreen(!primaryStage.isFullScreen()); // Cambia el estado de pantalla completa
-            } else             if (event.isControlDown() && event.getCode() == KeyCode.ESCAPE) {
+            } else if (event.isControlDown() && event.getCode() == KeyCode.X) {
                 primaryStage.close();
             }
         });
@@ -192,9 +210,12 @@ public class DoomStyleGame extends Application {
         //canvas = new Canvas(SCREEN_WIDTH, SCREEN_HEIGHT);
         //gc = canvas.getGraphicsContext2D();
         //drawSprites(gc);
+        //adjustCanvas(primaryStage);
         updatePlayerPosition(); // Posición inicial del triángulo
         primaryStage.setTitle("Doom Style Game");
         primaryStage.setScene(scene);
+        // Añadir la mira
+        //addCrossbowSight(scene);
         primaryStage.show();
     }
 
@@ -216,7 +237,23 @@ public class DoomStyleGame extends Application {
         robot.mouseMove(centerX, centerY);
         lastMouseX = -1; // Restablecer lastMouseX
     }
+    private void addCrossbowSight(Scene scene) {
+        // Dimensiones y posición de la mira
+        double size = 10; // Tamaño de las líneas de la mira
+        double lineWidth = 2; // Grosor de las líneas
 
+        Canvas canvas = new Canvas(SCREEN_WIDTH, SCREEN_HEIGHT);
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+
+        // Dibujar la mira
+        gc.setStroke(javafx.scene.paint.Color.RED);
+        gc.setLineWidth(lineWidth);
+        gc.strokeLine(SCREEN_WIDTH / 2 - size, SCREEN_HEIGHT / 2, SCREEN_WIDTH / 2 + size, SCREEN_HEIGHT / 2);
+        gc.strokeLine(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - size, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + size);
+
+        // Añadir el canvas a la escena
+        ((Pane) scene.getRoot()).getChildren().add(canvas);
+    }
     private void adjustCanvas(Stage primaryStage){
         MID_VERTICAL_SCREEN = primaryStage.getHeight() / 2;
         SCREEN_HEIGHT = (int) primaryStage.getHeight();
