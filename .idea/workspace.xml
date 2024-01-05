@@ -4,8 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b9407a71-19fa-487a-8c25-1e3921229056" name="Changes" comment="Refactor to wall colors drawing">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/gemasoft/gema_engine/Sprite.java" afterDir="false" />
+    <list default="true" id="b9407a71-19fa-487a-8c25-1e3921229056" name="Changes" comment="Added gun">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/gemasoft/gema_engine/DoomStyleGame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/gemasoft/gema_engine/DoomStyleGame.java" afterDir="false" />
     </list>
@@ -124,7 +123,23 @@
       <option name="project" value="LOCAL" />
       <updated>1704307678436</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Added gun">
+      <option name="closed" value="true" />
+      <created>1704330556824</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1704330556824</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Added gun">
+      <option name="closed" value="true" />
+      <created>1704330566795</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1704330566795</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -136,6 +151,7 @@
     <MESSAGE value="Added basic texture handling and re added rays in mini map" />
     <MESSAGE value="Added shadows at distance" />
     <MESSAGE value="Refactor to wall colors drawing" />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor to wall colors drawing" />
+    <MESSAGE value="Added gun" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added gun" />
   </component>
 </project>

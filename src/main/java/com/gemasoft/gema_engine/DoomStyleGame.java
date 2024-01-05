@@ -15,8 +15,6 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import java.util.ArrayList;
@@ -25,13 +23,6 @@ import java.util.List;
 import java.util.Set;
 
 public class DoomStyleGame extends Application {
-    // Posición inicial del jugador (x, y)
-    private static double  playerPosX = 3; // Posición inicial X del jugador
-    private static double  playerPosY = 3; // Posición inicial Y del jugador
-    private static final int SCALE = 1;
-    private static final double MOVE_SPEED = 0.1; // Reducir velocidad a la mitad
-    private static final int PLAYER_SIZE = 1; // Tamaño del punto que representa al jugador
-    private static final int TILE_SIZE = 8 * SCALE;
     private static final int[][] MAP = {
             {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
             {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
@@ -54,17 +45,25 @@ public class DoomStyleGame extends Application {
             {1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
             {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
     };
+    // Posición inicial del jugador (x, y)
+    private static double  playerPosX = 3; // Posición inicial X del jugador
+    private static double  playerPosY = 3; // Posición inicial Y del jugador
+    private static final int SCALE = 1;
+    private static final double MOVE_SPEED = 0.1; // Reducir velocidad a la mitad
+    private static final int PLAYER_SIZE = 1; // Tamaño del punto que representa al jugador
+    private static final int TILE_SIZE = 8 * SCALE;
     private Circle player;
     private final Set<String> input = new HashSet<>();
     private double playerDirection = 0; // Ángulo de dirección del jugador en grados
-    private static final int NUM_RAYS = 800;
     private static final double FOV = 75; // Campo de visión de 90 grados
     private Pane screenLayer;
-    private static final int SCREEN_WIDTH = 800;
-    private static final int SCREEN_HEIGHT = 600;
+    private static int SCREEN_WIDTH = 800;
+    //private static final int NUM_RAYS = 1200;
+    private static int SCREEN_HEIGHT = 600;
+
     private static final double MAX_RAY_DISTANCE = 10.0; // Máxima distancia efectiva para el cálculo de la altura
     private final boolean showFPS = true; // Variable para controlar la visibilidad del contador de FPS
-    private final Text fpsText = new Text(); // Texto para mostrar los FPS
+    //private final Text fpsText = new Text(); // Texto para mostrar los FPS
     //private static final double JUMP_SPEED = 5; // Velocidad inicial del salto
     //private static final double GRAVITY = 0.3; // Gravedad que afecta al jugador después de saltar
     //private boolean isJumping = false;
@@ -77,20 +76,19 @@ public class DoomStyleGame extends Application {
     private List<Sprite> sprites = new ArrayList<>();
     private Canvas canvas;
     private GraphicsContext gc;
-    private ImageView swordImage;
+    private ImageView weaponImage;
 
     private boolean playerIsMoving;
-
-    private void loadSwordImage() {
-        Image image = new Image("C:/Users/m1gmartin/IdeaProjects/GemaEngine/src/main/resources/gun.gif"); // Asegúrate de que la ruta sea correcta
-        swordImage = new ImageView(image);
-        swordImage.setX(250); // Establece la posición inicial X
-        swordImage.setY(300); // Establece la posición inicial Y
-        swordImage.setFitHeight(400);
-        swordImage.setFitWidth(600);
+    private static final double VISION_ANGLE = 0;
+    private static double MID_VERTICAL_SCREEN = (double) SCREEN_WIDTH / 2;
+    private void loadWeaponImage() {
+        Image image = new Image("/gun.gif"); // Asegúrate de que la ruta sea correcta
+        weaponImage = new ImageView(image);
+        weaponImage.setX(SCREEN_WIDTH - (SCREEN_WIDTH * 0.2)); // Establece la posición inicial X
+        weaponImage.setY(SCREEN_HEIGHT - (SCREEN_HEIGHT * 0.2)); // Establece la posición inicial Y
+        weaponImage.setFitHeight(400);
+        weaponImage.setFitWidth(500);
     }
-
-
     private double swordYOffset = 0;
     private boolean movingUp = true;
     private final double SWORD_MOVEMENT_SPEED = 0.5; // Ajusta la velocidad de movimiento
@@ -104,10 +102,9 @@ public class DoomStyleGame extends Application {
                 swordYOffset += SWORD_MOVEMENT_SPEED;
                 if (swordYOffset > 5) movingUp = true; // Ajusta el rango de movimiento
             }
-            swordImage.setY(swordImage.getY() + swordYOffset);
+            weaponImage.setY(weaponImage.getY() + swordYOffset);
         }
     }
-
 
     @Override
     public void start(Stage primaryStage) {
@@ -132,6 +129,7 @@ public class DoomStyleGame extends Application {
 
         root.getChildren().add(playerTriangle);
 
+
         screenLayer = new Pane(); // Capa para las líneas verticales
         screenLayer.setPrefSize(SCREEN_WIDTH, SCREEN_HEIGHT);
         root.getChildren().add(screenLayer);
@@ -145,15 +143,8 @@ public class DoomStyleGame extends Application {
             playerDirection = 360.0 / SCREEN_WIDTH * mouseX; // Ajusta la dirección basada en la posición del mouse
         });
 
-        // Configuración del texto para los FPS
-        fpsText.setFont(new Font("Arial", 20));
-        fpsText.setFill(Color.WHITE);
-        fpsText.setX(10); // Posición en X (abajo a la izquierda)
-        fpsText.setY(SCREEN_HEIGHT - 10); // Posición en Y
-        root.getChildren().add(fpsText);
-
-        loadSwordImage();
-        root.getChildren().add(swordImage); // Asume que root es tu Pane principal
+        //loadWeaponImage();
+        //root.getChildren().add(weaponImage); // Asume que root es tu Pane principal
 
         AnimationTimer timer = new AnimationTimer() {
             private long lastUpdate = 0;
@@ -163,17 +154,7 @@ public class DoomStyleGame extends Application {
                 updatePlayerPosition();
                 drawWalls();
                 castRays();
-                updateSwordPosition();
-
-                // Actualizar y mostrar los FPS
-                if (now - lastUpdate >= 1_000_000_000) { // Actualizar cada segundo
-                    double fps = 1_000_000_000.0 / (now - lastUpdate);
-                    fpsText.setText(String.format("FPS: %f.2", fps));
-                    lastUpdate = now;
-                }
-
-                // Controlar la visibilidad del texto de los FPS
-                fpsText.setVisible(showFPS);
+                //updateSwordPosition();
             }
         };
         timer.start();
@@ -182,13 +163,24 @@ public class DoomStyleGame extends Application {
         scene.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
             if (event.isControlDown() && event.getCode() == KeyCode.F) {
                 primaryStage.setFullScreen(!primaryStage.isFullScreen()); // Cambia el estado de pantalla completa
+                // Obtener la configuración de la pantalla principal
+                MID_VERTICAL_SCREEN = primaryStage.getHeight() / 2;
+                SCREEN_WIDTH = (int) primaryStage.getWidth();
+                weaponImage.setX(SCREEN_WIDTH - (SCREEN_WIDTH * 0.4)); // Establece la posición inicial X
+                weaponImage.setY(SCREEN_HEIGHT + (SCREEN_HEIGHT * 0.01)); // Establece la posición inicial Y
+            }
+            else if (event.isControlDown() && event.getCode() == KeyCode.ESCAPE) {
+                MID_VERTICAL_SCREEN = primaryStage.getHeight() / 2;
+                SCREEN_WIDTH = (int) primaryStage.getWidth();
+                weaponImage.setX(SCREEN_WIDTH - (SCREEN_WIDTH * 0.4)); // Establece la posición inicial X
+                weaponImage.setY(SCREEN_HEIGHT + (SCREEN_HEIGHT * 0.2)); // Establece la posición inicial Y
             }
         });
         // En tu método start() o un método de inicialización
-        loadSprites();
-        canvas = new Canvas(SCREEN_WIDTH, SCREEN_HEIGHT);
-        gc = canvas.getGraphicsContext2D();
-        drawSprites(gc);
+        //loadSprites();
+        //canvas = new Canvas(SCREEN_WIDTH, SCREEN_HEIGHT);
+        //gc = canvas.getGraphicsContext2D();
+        //drawSprites(gc);
         updatePlayerPosition(); // Posición inicial del triángulo
         primaryStage.setTitle("Doom Style Game");
         primaryStage.setScene(scene);
@@ -199,7 +191,7 @@ public class DoomStyleGame extends Application {
         // ... carga de otros sprites ...
 
         // Cargar la imagen de la moneda
-        Image coinImage = new Image("C:/Users/m1gmartin/IdeaProjects/GemaEngine/src/main/resources/eagle.png");
+        Image coinImage = new Image("/eagle.png");
 
         // Suponiendo que el número 9 en el mapa representa una moneda
         for (int y = 0; y < MAP.length; y++) {
@@ -364,10 +356,10 @@ public class DoomStyleGame extends Application {
         //sky.setFill(Color.NAVY); // Color azul marino para el cielo
         //screenLayer.getChildren().add(sky);
 
-        double angleStep = FOV / NUM_RAYS;
+        double angleStep = FOV / SCREEN_WIDTH;
         double startAngle = playerDirection - FOV / 2;
 
-        for (int i = 0; i < NUM_RAYS; i++) {
+        for (int i = 0; i < SCREEN_WIDTH; i++) {
             double rayAngle = startAngle + i * angleStep;
             double rayLength = 0;
             int hitWall = 0;
@@ -393,7 +385,8 @@ public class DoomStyleGame extends Application {
 
             double correctedRayLength = rayLength * Math.cos(Math.toRadians(rayAngle - playerDirection));
             double lineHeight = SCREEN_HEIGHT / (Math.min(correctedRayLength, MAX_RAY_DISTANCE));
-            double lineTop = (SCREEN_HEIGHT - lineHeight) / 2;
+            //Voltear arriba y abajo con el mouse
+            double lineTop = ((MID_VERTICAL_SCREEN * 2) - lineHeight) / 2 + VISION_ANGLE;
             double lineBottom = lineTop + lineHeight;
 
             // Ajustar el color basándose en la distancia
@@ -426,17 +419,27 @@ public class DoomStyleGame extends Application {
         }
     }
 
+    private void drawFloor(){
+        int x,y;
+        int xo=400;
+        int yo=300;
+        float fov = 200;
+
+
+
+    }
+
     // Método para dibujar los rayos en el mini mapa
     private void castRays() {
         // Eliminar los rayos anteriores
         ((Pane) player.getParent()).getChildren().removeIf(node -> node instanceof Line);
 
-        double angleStep = FOV / NUM_RAYS;
+        double angleStep = FOV / SCREEN_WIDTH;
         double startAngle = playerDirection - FOV / 2;
 
-        for (int i = 0; i < NUM_RAYS; i++) {
+        for (int i = 0; i < SCREEN_WIDTH; i++) {
             // Comment to display all the rays
-            if (i == NUM_RAYS / 2) {
+            if (i == SCREEN_WIDTH / 2) {
                 double rayAngle = startAngle + i * angleStep;
                 double rayLength = 0;
 
