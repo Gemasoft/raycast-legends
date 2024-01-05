@@ -134,7 +134,7 @@ public class DoomStyleGame extends Application {
 
         Scene scene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
         // Esconde el cursor del mouse
-        scene.setCursor(Cursor.DEFAULT);
+        scene.setCursor(Cursor.CROSSHAIR);
         scene.setOnKeyPressed(e -> input.add(e.getCode().toString()));
         scene.setOnKeyReleased(e -> input.remove(e.getCode().toString()));
 
