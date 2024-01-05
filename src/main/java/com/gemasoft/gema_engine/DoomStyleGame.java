@@ -2,6 +2,8 @@ package com.gemasoft.gema_engine;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -60,24 +62,12 @@ public class DoomStyleGame extends Application {
     private static int SCREEN_WIDTH = 800;
     //private static final int NUM_RAYS = 1200;
     private static int SCREEN_HEIGHT = 600;
-
     private static final double MAX_RAY_DISTANCE = 10.0; // Máxima distancia efectiva para el cálculo de la altura
-    private final boolean showFPS = true; // Variable para controlar la visibilidad del contador de FPS
-    //private final Text fpsText = new Text(); // Texto para mostrar los FPS
-    //private static final double JUMP_SPEED = 5; // Velocidad inicial del salto
-    //private static final double GRAVITY = 0.3; // Gravedad que afecta al jugador después de saltar
-    //private boolean isJumping = false;
-    //private double verticalSpeed = 0; // Velocidad vertical actual del jugador
-
-    // Cargar la textura
-    //Image floorTexture = new Image("C:/Users/m1gmartin/IdeaProjects/GemaEngine/src/main/resources/wall_2.jpg");
-    //Image textures = new Image("C:/Users/m1gmartin/IdeaProjects/GemaEngine/src/main/resources/wolftextures.png");
     private Polygon playerTriangle;
     private List<Sprite> sprites = new ArrayList<>();
     private Canvas canvas;
     private GraphicsContext gc;
     private ImageView weaponImage;
-
     private boolean playerIsMoving;
     private static final double VISION_ANGLE = 0;
     private static double MID_VERTICAL_SCREEN = (double) SCREEN_WIDTH / 2;
@@ -147,7 +137,6 @@ public class DoomStyleGame extends Application {
         //root.getChildren().add(weaponImage); // Asume que root es tu Pane principal
 
         AnimationTimer timer = new AnimationTimer() {
-            private long lastUpdate = 0;
 
             @Override
             public void handle(long now) {
@@ -163,17 +152,22 @@ public class DoomStyleGame extends Application {
         scene.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
             if (event.isControlDown() && event.getCode() == KeyCode.F) {
                 primaryStage.setFullScreen(!primaryStage.isFullScreen()); // Cambia el estado de pantalla completa
-                // Obtener la configuración de la pantalla principal
-                MID_VERTICAL_SCREEN = primaryStage.getHeight() / 2;
-                SCREEN_WIDTH = (int) primaryStage.getWidth();
-                weaponImage.setX(SCREEN_WIDTH - (SCREEN_WIDTH * 0.4)); // Establece la posición inicial X
-                weaponImage.setY(SCREEN_HEIGHT + (SCREEN_HEIGHT * 0.01)); // Establece la posición inicial Y
             }
-            else if (event.isControlDown() && event.getCode() == KeyCode.ESCAPE) {
-                MID_VERTICAL_SCREEN = primaryStage.getHeight() / 2;
-                SCREEN_WIDTH = (int) primaryStage.getWidth();
-                weaponImage.setX(SCREEN_WIDTH - (SCREEN_WIDTH * 0.4)); // Establece la posición inicial X
-                weaponImage.setY(SCREEN_HEIGHT + (SCREEN_HEIGHT * 0.2)); // Establece la posición inicial Y
+        });
+
+        primaryStage.widthProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                System.out.println("Ancho de la ventana cambiado: " + newValue);
+                adjustCanvas(primaryStage);
+            }
+        });
+
+        primaryStage.heightProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                System.out.println("Alto de la ventana cambiado: " + newValue);
+                adjustCanvas(primaryStage);
             }
         });
         // En tu método start() o un método de inicialización
@@ -185,6 +179,12 @@ public class DoomStyleGame extends Application {
         primaryStage.setTitle("Doom Style Game");
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    private void adjustCanvas(Stage primaryStage){
+        MID_VERTICAL_SCREEN = primaryStage.getHeight() / 2;
+        SCREEN_HEIGHT = (int) primaryStage.getHeight();
+        SCREEN_WIDTH = (int) primaryStage.getWidth();
     }
 
     private void loadSprites() {
@@ -250,21 +250,6 @@ public class DoomStyleGame extends Application {
         }
     }
 
-    // Método para alternar la visibilidad del contador de FPS
-    //public void toggleFPSDisplay() {
-        //showFPS = !showFPS;
-    //}
-
-    //public void playMusic(){
-        /*
-         // Cargar y reproducir la música de fondo
-         Media md = new Media(new File("path/to/your/music.mp3").toURI().toString());
-         MediaPlayer mediaPlayer = new MediaPlayer(md);
-         mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE); // Establecer para reproducir en bucle
-         mediaPlayer.play();
-        */
-    //}
-
     private void updatePlayerPosition() {
         double dx = 0, dy = 0;
         playerIsMoving = false;
@@ -303,8 +288,6 @@ public class DoomStyleGame extends Application {
 
         // Establecer el punto de pivote para la rotación en el centro del triángulo
         playerTriangle.setRotate(playerDirection + 90); // Restar 90 grados si el triángulo apunta hacia arriba inicialmente
-
-
 
         movePlayer(dx, dy);
     }
@@ -389,6 +372,9 @@ public class DoomStyleGame extends Application {
             double lineTop = ((MID_VERTICAL_SCREEN * 2) - lineHeight) / 2 + VISION_ANGLE;
             double lineBottom = lineTop + lineHeight;
 
+            // Dibuja el piso
+            drawFloor(i,lineBottom);
+
             // Ajustar el color basándose en la distancia
             double brightness = 1.0 - Math.min(1.0, correctedRayLength / MAX_RAY_DISTANCE);
             Color wallColor = Color.WHITE;
@@ -412,21 +398,19 @@ public class DoomStyleGame extends Application {
                 screenLayer.getChildren().add(screenLine);
             //}
 
-            // Dibuja el piso
-            Line floorLine = new Line(i, lineBottom, i, SCREEN_HEIGHT);
-            floorLine.setStroke(Color.NAVY);
-            screenLayer.getChildren().add(floorLine);
+
         }
     }
 
-    private void drawFloor(){
+    private void drawFloor(int i, double lineBottom) {
         int x,y;
         int xo=400;
         int yo=300;
         float fov = 200;
 
-
-
+        Line floorLine = new Line(i, lineBottom, i, SCREEN_HEIGHT);
+        floorLine.setStroke(Color.NAVY);
+        screenLayer.getChildren().add(floorLine);
     }
 
     // Método para dibujar los rayos en el mini mapa
