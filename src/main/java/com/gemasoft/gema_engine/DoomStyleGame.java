@@ -5,6 +5,7 @@ import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Cursor;
+import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -22,10 +23,7 @@ import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class DoomStyleGame extends Application {
     private static final int[][] MAP = {
@@ -33,7 +31,7 @@ public class DoomStyleGame extends Application {
             {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
             {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
             {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-            {1,0,0,0,0,0,2,2,2,2,2,0,0,0,0,3,0,3,0,3,0,0,0,1},
+            {1,0,0,0,0,0,9,2,2,2,2,0,0,0,0,3,0,3,0,3,0,0,0,1},
             {1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,1},
             {1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,3,0,0,0,3,0,0,0,1},
             {1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,1},
@@ -44,13 +42,14 @@ public class DoomStyleGame extends Application {
             {1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
             {1,4,0,4,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
             {1,4,0,0,0,0,5,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-            {1,4,0,4,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-            {1,4,0,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+            {1,4,0,4,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,9,0,0,0,1},
+            {1,4,0,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,9,0,0,0,0,1},
             {1,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
             {1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
             {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
     };
     private static final double ROTATION_FACTOR = 0.8;
+    private static final int MAX_VERTICAL_ANGLE = 750;
     // Posición inicial del jugador (x, y)
     private static double  playerPosX = 3; // Posición inicial X del jugador
     private static double  playerPosY = 3; // Posición inicial Y del jugador
@@ -58,7 +57,9 @@ public class DoomStyleGame extends Application {
     private static final double MOVE_SPEED = 0.1; // Reducir velocidad a la mitad
     private static final int PLAYER_SIZE = 1; // Tamaño del punto que representa al jugador
     private static final int TILE_SIZE = 8 * SCALE;
-    private Circle player;
+    private Circle player = new Circle(playerPosX * TILE_SIZE + TILE_SIZE / 2.0,
+                                     playerPosY * TILE_SIZE + TILE_SIZE / 2.0,
+                                     PLAYER_SIZE, Color.WHITE);
     private final Set<String> input = new HashSet<>();
     private double playerDirection = 0; // Ángulo de dirección del jugador en grados
     private static final double FOV = 75; // Campo de visión de 90 grados
@@ -67,77 +68,41 @@ public class DoomStyleGame extends Application {
     //private static final int NUM_RAYS = 1200;
     private static int SCREEN_HEIGHT = 600;
     private static final double MAX_RAY_DISTANCE = 10.0; // Máxima distancia efectiva para el cálculo de la altura
-    private Polygon playerTriangle;
+    private Polygon playerTriangle = new Polygon();;
     private List<Sprite> sprites = new ArrayList<>();
     private Canvas canvas;
     private GraphicsContext gc;
     private ImageView weaponImage;
     private boolean playerIsMoving;
     private static double VISION_ANGLE = 0;
-    private double lastMouseY = -1; // Para rastrear la última posición Y del ratón
     private final double ANGLE_CHANGE_FACTOR = 2; // Ajusta este valor según la sensibilidad deseada
-
     private static double MID_VERTICAL_SCREEN = (double) SCREEN_WIDTH / 2;
-    private void loadWeaponImage() {
-        Image image = new Image("/gun.gif"); // Asegúrate de que la ruta sea correcta
-        weaponImage = new ImageView(image);
-        weaponImage.setX(SCREEN_WIDTH - (SCREEN_WIDTH * 0.2)); // Establece la posición inicial X
-        weaponImage.setY(SCREEN_HEIGHT - (SCREEN_HEIGHT * 0.2)); // Establece la posición inicial Y
-        weaponImage.setFitHeight(400);
-        weaponImage.setFitWidth(500);
-    }
+    private AnimationTimer slowRenderingTimer;
     private double swordYOffset = 0;
     private boolean movingUp = true;
     private final double SWORD_MOVEMENT_SPEED = 0.5; // Ajusta la velocidad de movimiento
     private double lastMouseX = -1; // Inicializar con un valor no válido
-
-    private void updateSwordPosition() {
-        if (playerIsMoving) {
-            if (movingUp) {
-                swordYOffset -= SWORD_MOVEMENT_SPEED;
-                if (swordYOffset < -5) movingUp = false; // Ajusta el rango de movimiento
-            } else {
-                swordYOffset += SWORD_MOVEMENT_SPEED;
-                if (swordYOffset > 5) movingUp = true; // Ajusta el rango de movimiento
-            }
-            weaponImage.setY(weaponImage.getY() + swordYOffset);
-        }
-    }
+    private double lastMouseY = -1; // Para rastrear la última posición Y del ratón
+    private long lastUpdate = 0;
+    private final long DELAY = 10000000; // Retraso en nanosegundos
 
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setFullScreen(true);
+        // Configurar pantalla completa
+        primaryStage.setFullScreen(false);
         Pane root = new Pane();
-        drawMap(root);
-
-        //Texture text = new Texture("C:/Users/m1gmartin/IdeaProjects/GemaEngine/src/main/resources/eagle.png", 64);
-
-        player = new Circle(playerPosX * TILE_SIZE + TILE_SIZE / 2.0,
-                playerPosY * TILE_SIZE + TILE_SIZE / 2.0,
-                PLAYER_SIZE, Color.WHITE);
-        root.getChildren().add(player);
-
-        // Crear el triángulo para representar al jugador
-        playerTriangle = new Polygon();
-        playerTriangle.getPoints().addAll(new Double[]{
-                0.0, 0.0,    // Punto 1 (punta del triángulo)
-                -5.0, 10.0,  // Punto 2
-                5.0, 10.0    // Punto 3
-        });
-        playerTriangle.setFill(Color.RED);
-
-        root.getChildren().add(playerTriangle);
+        Scene scene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
 
         screenLayer = new Pane(); // Capa para las líneas verticales
         screenLayer.setPrefSize(SCREEN_WIDTH, SCREEN_HEIGHT);
         root.getChildren().add(screenLayer);
 
-        Scene scene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
         // Esconde el cursor del mouse
         scene.setCursor(Cursor.CROSSHAIR);
         scene.setOnKeyPressed(e -> input.add(e.getCode().toString()));
         scene.setOnKeyReleased(e -> input.remove(e.getCode().toString()));
 
+        // Manejador de movimiento vertical con mouse
         scene.setOnMouseMoved(e -> {
             if (lastMouseX >= 0) {
                 double deltaX = e.getSceneX() - lastMouseX;
@@ -150,13 +115,12 @@ public class DoomStyleGame extends Application {
                 VISION_ANGLE += deltaY * -ANGLE_CHANGE_FACTOR;
 
                 // Opcional: Limitar VISION_ANGLE a un rango específico
-                if (VISION_ANGLE > 700 ){
-                    VISION_ANGLE = 700;
-                } else if(VISION_ANGLE < -700){
-                    VISION_ANGLE = -700;
+                if (VISION_ANGLE > MAX_VERTICAL_ANGLE ){
+                    VISION_ANGLE = MAX_VERTICAL_ANGLE;
+                } else if(VISION_ANGLE < -MAX_VERTICAL_ANGLE){
+                    VISION_ANGLE = -MAX_VERTICAL_ANGLE;
                 }
             }
-
 
             if (!isMouseAtCenter(e)) {
                 centerMouse(primaryStage, scene);
@@ -165,21 +129,6 @@ public class DoomStyleGame extends Application {
                 lastMouseY = e.getSceneY();
             }
         });
-
-
-        //loadWeaponImage();
-        //root.getChildren().add(weaponImage); // Asume que root es tu Pane principal
-
-        AnimationTimer timer = new AnimationTimer() {
-            @Override
-            public void handle(long now) {
-                updatePlayerPosition();
-                drawWalls();
-                castRays();
-                //updateSwordPosition();
-            }
-        };
-        timer.start();
 
         // Manejador de eventos para la combinación de teclas Ctrl-F
         scene.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
@@ -190,6 +139,7 @@ public class DoomStyleGame extends Application {
             }
         });
 
+        // Manejo de cambios en el tamano de pantalla (Ancho)
         primaryStage.widthProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
@@ -197,7 +147,7 @@ public class DoomStyleGame extends Application {
                 adjustCanvas(primaryStage);
             }
         });
-
+        // Manejo de cambios en el tamano de pantalla (Alto)
         primaryStage.heightProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
@@ -205,26 +155,30 @@ public class DoomStyleGame extends Application {
                 adjustCanvas(primaryStage);
             }
         });
-        // En tu método start() o un método de inicialización
-        //loadSprites();
-        //canvas = new Canvas(SCREEN_WIDTH, SCREEN_HEIGHT);
-        //gc = canvas.getGraphicsContext2D();
-        //drawSprites(gc);
-        //adjustCanvas(primaryStage);
-        updatePlayerPosition(); // Posición inicial del triángulo
-        primaryStage.setTitle("Doom Style Game");
+        // Posición inicial del triángulo
+        updatePlayerPosition();
+        // Titulo de la ventana
+        primaryStage.setTitle("Raycast Legends");
         primaryStage.setScene(scene);
-        // Añadir la mira
-        //addCrossbowSight(scene);
         primaryStage.show();
-    }
 
+        AnimationTimer timer = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                updatePlayerPosition();
+                drawWalls();
+                //castRays();
+            }
+        };
+        drawMiniMap(root);
+        timer.start();
+    }
     private boolean isMouseAtCenter(MouseEvent e) {
         double centerX = SCREEN_WIDTH / 2;
         double centerY = SCREEN_HEIGHT / 2;
         return e.getSceneX() == centerX && e.getSceneY() == centerY;
     }
-
+    // Metodo para centar el cursos del mouse
     private void centerMouse(Stage primaryStage, Scene scene) {
         Robot robot = new Robot();
         double centerX = primaryStage.getX() + scene.getWidth() / 2;
@@ -237,92 +191,38 @@ public class DoomStyleGame extends Application {
         robot.mouseMove(centerX, centerY);
         lastMouseX = -1; // Restablecer lastMouseX
     }
-    private void addCrossbowSight(Scene scene) {
-        // Dimensiones y posición de la mira
-        double size = 10; // Tamaño de las líneas de la mira
-        double lineWidth = 2; // Grosor de las líneas
-
-        Canvas canvas = new Canvas(SCREEN_WIDTH, SCREEN_HEIGHT);
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-
-        // Dibujar la mira
-        gc.setStroke(javafx.scene.paint.Color.RED);
-        gc.setLineWidth(lineWidth);
-        gc.strokeLine(SCREEN_WIDTH / 2 - size, SCREEN_HEIGHT / 2, SCREEN_WIDTH / 2 + size, SCREEN_HEIGHT / 2);
-        gc.strokeLine(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - size, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + size);
-
-        // Añadir el canvas a la escena
-        ((Pane) scene.getRoot()).getChildren().add(canvas);
-    }
+    // Metodo para actualizar los valores del tamano de la pantalla
     private void adjustCanvas(Stage primaryStage){
         MID_VERTICAL_SCREEN = primaryStage.getHeight() / 2;
         SCREEN_HEIGHT = (int) primaryStage.getHeight();
         SCREEN_WIDTH = (int) primaryStage.getWidth();
     }
-
-    private void loadSprites() {
-        // ... carga de otros sprites ...
-
-        // Cargar la imagen de la moneda
-        Image coinImage = new Image("/eagle.png");
-
-        // Suponiendo que el número 9 en el mapa representa una moneda
-        for (int y = 0; y < MAP.length; y++) {
-            for (int x = 0; x < MAP[y].length; x++) {
-                if (MAP[y][x] == 9) {
-                    // Crear y añadir el sprite de la moneda
-                    Sprite coinSprite = new Sprite(x * 16, y * 16, coinImage);
-                    sprites.add(coinSprite);
-                }
-            }
-        }
-    }
-
-    private void drawSprites(GraphicsContext gc) {
-        for (Sprite sprite : sprites) {
-            // Calcular la posición relativa del sprite al jugador
-            double dx = sprite.x - playerPosX;
-            double dy = sprite.y - playerPosY;
-
-            // Calcular la distancia y el ángulo relativo al jugador
-            double dist = Math.sqrt(dx * dx + dy * dy);
-            double theta = Math.atan2(dy, dx) - Math.toRadians(playerDirection);
-
-            // Decidir si el sprite está en el campo de visión
-            if (theta < -Math.PI) theta += 2 * Math.PI;
-            if (theta > Math.PI) theta -= 2 * Math.PI;
-
-            if (Math.abs(theta) > Math.PI / 4) continue; // Sprite fuera del campo de visión
-
-            // Calcular la posición y escala del sprite en la pantalla
-            double spriteScale = 5; // Calcular escala basada en dist
-            double spriteScreenX = Math.tan(theta) * SCREEN_WIDTH;
-            double spriteScreenY = ((double) SCREEN_HEIGHT / 2) - (spriteScale * sprite.image.getHeight() / 2); // Calcular usando dist y la altura del sprite
-
-            // Dibujar el sprite
-            gc.drawImage(sprite.image, spriteScreenX, spriteScreenY, spriteScale, spriteScale);
-        }
-    }
-
-
-    private void drawMap(Pane root) {
+    private void drawMiniMap(Pane root) {
         for (int y = 0; y < MAP.length; y++) {
             for (int x = 0; x < MAP[y].length; x++) {
                 Rectangle rect = new Rectangle(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-                 int wallType = MAP[y][x];
-
+                int wallType = MAP[y][x];
                 switch (wallType) {
-                    case 1 -> rect.setFill(Color.BLACK);
-                    case 2 -> rect.setFill(Color.RED);
-                    case 3 -> rect.setFill(Color.GREEN);
-                    case 4 -> rect.setFill(Color.BLUEVIOLET);
-                    default -> rect.setFill(Color.WHITE);
+                    case 1 -> rect.setFill(Color.rgb(0,0,0,0.5));
+                    case 2 -> rect.setFill(Color.rgb(255, 0, 0, 0.5));
+                    case 3 -> rect.setFill(Color.rgb(0, 255, 29, 0.5));
+                    case 4 -> rect.setFill(Color.rgb(0, 13, 255, 0.5));
+                    case 9 -> rect.setFill(Color.rgb(136, 72, 0, 0.5));
+                    default -> rect.setFill(Color.rgb(255, 255, 255, 0.5));
                 }
                 root.getChildren().add(rect);
             }
         }
-    }
+        // Crear el triángulo para representar al jugador
+        playerTriangle.getPoints().addAll(new Double[]{
+                0.0, 0.0,    // Punto 1 (punta del triángulo)
+                -5.0, 10.0,  // Punto 2
+                5.0, 10.0    // Punto 3
+        });
+        playerTriangle.setFill(Color.LIGHTBLUE);
 
+        root.getChildren().add(playerTriangle);
+    }
     private void updatePlayerPosition() {
         double dx = 0, dy = 0;
         playerIsMoving = false;
@@ -364,7 +264,6 @@ public class DoomStyleGame extends Application {
 
         movePlayer(dx, dy);
     }
-
     private void movePlayer(double dx, double dy) {
         // Intentar mover en X
         if (canMoveTo(playerPosX + dx, playerPosY)) {
@@ -380,7 +279,6 @@ public class DoomStyleGame extends Application {
         player.setCenterX(playerPosX * TILE_SIZE + TILE_SIZE / 10.0);
         player.setCenterY(playerPosY * TILE_SIZE + TILE_SIZE / 20.0);
     }
-
     private boolean canMoveTo(double x, double y) {
         int leftTile = (int) Math.floor(x - PLAYER_SIZE / 2.0 / TILE_SIZE);
         int rightTile = (int) Math.ceil(x + PLAYER_SIZE / 0.8 / TILE_SIZE) - 1 ; // Ajuste para incluir el borde derecho
@@ -401,16 +299,13 @@ public class DoomStyleGame extends Application {
 
         return true; // No hay colisión
     }
-
-    // Método para dibujar los rayos
-
+    // Método para dibujar los muros
     private void drawWalls() {
         screenLayer.getChildren().clear(); // Limpia la capa de pantalla para las líneas verticales
-
         // Dibujar el cielo como un rectángulo
-        //Rectangle sky = new Rectangle(0, 0, SCREEN_WIDTH, (double) SCREEN_HEIGHT);
-        //sky.setFill(Color.NAVY); // Color azul marino para el cielo
-        //screenLayer.getChildren().add(sky);
+        Rectangle sky = new Rectangle(0, 0, SCREEN_WIDTH, (double) SCREEN_HEIGHT);
+        sky.setFill(Color.ORANGE); // Color azul marino para el cielo
+        screenLayer.getChildren().add(sky);
 
         double angleStep = FOV / SCREEN_WIDTH;
         double startAngle = playerDirection - FOV / 2;
@@ -456,7 +351,10 @@ public class DoomStyleGame extends Application {
                 case 2 -> wallColor = Color.RED;
                 case 3 -> wallColor = Color.GREEN;
                 case 4 -> wallColor = Color.PURPLE;
-                case 9 -> wallColor = Color.TRANSPARENT;
+                case 9 -> {
+                    wallColor = getRandomColor();
+                    //hitTexturedWall = true;
+                }
             }
 
             wallColor = wallColor.deriveColor(0, 1, brightness, 1);
@@ -464,17 +362,25 @@ public class DoomStyleGame extends Application {
             if (hitTexturedWall) {
                 // Aquí deberías calcular qué parte de la textura mapear y luego dibujarla.
                 // Este es un lugar donde necesitarás una lógica más compleja para mapear correctamente la textura.
-                System.getLogger("hit Texture");
-            } //else {
+                System.out.println("Muro con textura ");
+            } else {
                 Line screenLine = new Line(i, lineTop, i, lineBottom);
                 screenLine.setStroke(wallColor); // Color para muros no texturizados
                 screenLayer.getChildren().add(screenLine);
-            //}
-
-
+            }
         }
     }
+    // Método para generar un color aleatorio
+    public static Color getRandomColor() {
+        Random random = new Random();
 
+        double red = random.nextDouble();
+        double green = random.nextDouble();
+        double blue = random.nextDouble();
+
+        return new Color(red, green, blue, 1.0);
+    }
+    //Metodo para dibujar el piso
     private void drawFloor(int i, double lineBottom) {
         int x,y;
         int xo=400;
@@ -485,7 +391,6 @@ public class DoomStyleGame extends Application {
         floorLine.setStroke(Color.NAVY);
         screenLayer.getChildren().add(floorLine);
     }
-
     // Método para dibujar los rayos en el mini mapa
     private void castRays() {
         // Eliminar los rayos anteriores
@@ -522,7 +427,27 @@ public class DoomStyleGame extends Application {
             }
         }
     }
-
+    private void updateSwordPosition() {
+        if (playerIsMoving) {
+            if (movingUp) {
+                swordYOffset -= SWORD_MOVEMENT_SPEED;
+                if (swordYOffset < -5) movingUp = false; // Ajusta el rango de movimiento
+            } else {
+                swordYOffset += SWORD_MOVEMENT_SPEED;
+                if (swordYOffset > 5) movingUp = true; // Ajusta el rango de movimiento
+            }
+            weaponImage.setY(weaponImage.getY() + swordYOffset);
+        }
+    }
+    private void loadWeaponImage() {
+        Image image = new Image("/gun.gif"); // Asegúrate de que la ruta sea correcta
+        weaponImage = new ImageView(image);
+        weaponImage.setX(SCREEN_WIDTH - (SCREEN_WIDTH * 0.2)); // Establece la posición inicial X
+        weaponImage.setY(SCREEN_HEIGHT - (SCREEN_HEIGHT * 0.2)); // Establece la posición inicial Y
+        weaponImage.setFitHeight(400);
+        weaponImage.setFitWidth(500);
+    }
+    // Launch the app
     public static void main(String[] args) {
         launch(args);
     }
