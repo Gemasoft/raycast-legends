@@ -2,13 +2,8 @@ package com.gemasoft.gema_engine;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.Cursor;
-import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -23,9 +18,11 @@ import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
 
-public class DoomStyleGame extends Application {
+public class RaycastLegends extends Application {
     private static final int[][] MAP = {
             {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
             {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
@@ -57,7 +54,7 @@ public class DoomStyleGame extends Application {
     private static final double MOVE_SPEED = 0.1; // Reducir velocidad a la mitad
     private static final int PLAYER_SIZE = 1; // Tamaño del punto que representa al jugador
     private static final int TILE_SIZE = 8 * SCALE;
-    private Circle player = new Circle(playerPosX * TILE_SIZE + TILE_SIZE / 2.0,
+    private final Circle player = new Circle(playerPosX * TILE_SIZE + TILE_SIZE / 2.0,
                                      playerPosY * TILE_SIZE + TILE_SIZE / 2.0,
                                      PLAYER_SIZE, Color.WHITE);
     private final Set<String> input = new HashSet<>();
@@ -68,23 +65,23 @@ public class DoomStyleGame extends Application {
     //private static final int NUM_RAYS = 1200;
     private static int SCREEN_HEIGHT = 600;
     private static final double MAX_RAY_DISTANCE = 10.0; // Máxima distancia efectiva para el cálculo de la altura
-    private Polygon playerTriangle = new Polygon();;
-    private List<Sprite> sprites = new ArrayList<>();
-    private Canvas canvas;
-    private GraphicsContext gc;
+    private final Polygon playerTriangle = new Polygon();
+    //private List<Sprite> sprites = new ArrayList<>();
+    //private Canvas canvas;
+    //private GraphicsContext gc;
     private ImageView weaponImage;
     private boolean playerIsMoving;
     private static double VISION_ANGLE = 0;
     private final double ANGLE_CHANGE_FACTOR = 2; // Ajusta este valor según la sensibilidad deseada
     private static double MID_VERTICAL_SCREEN = (double) SCREEN_WIDTH / 2;
-    private AnimationTimer slowRenderingTimer;
+    //private AnimationTimer slowRenderingTimer;
     private double swordYOffset = 0;
     private boolean movingUp = true;
     private final double SWORD_MOVEMENT_SPEED = 0.5; // Ajusta la velocidad de movimiento
     private double lastMouseX = -1; // Inicializar con un valor no válido
     private double lastMouseY = -1; // Para rastrear la última posición Y del ratón
-    private long lastUpdate = 0;
-    private final long DELAY = 10000000; // Retraso en nanosegundos
+    //private long lastUpdate = 0;
+    //private final long DELAY = 10000000; // Retraso en nanosegundos
 
     @Override
     public void start(Stage primaryStage) {
@@ -140,20 +137,14 @@ public class DoomStyleGame extends Application {
         });
 
         // Manejo de cambios en el tamano de pantalla (Ancho)
-        primaryStage.widthProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                System.out.println("Ancho de la ventana cambiado: " + newValue);
-                adjustCanvas(primaryStage);
-            }
+        primaryStage.widthProperty().addListener((observable, oldValue, newValue) -> {
+            System.out.println("Ancho de la ventana cambiado: " + newValue);
+            adjustCanvas(primaryStage);
         });
         // Manejo de cambios en el tamano de pantalla (Alto)
-        primaryStage.heightProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                System.out.println("Alto de la ventana cambiado: " + newValue);
-                adjustCanvas(primaryStage);
-            }
+        primaryStage.heightProperty().addListener((observable, oldValue, newValue) -> {
+            System.out.println("Alto de la ventana cambiado: " + newValue);
+            adjustCanvas(primaryStage);
         });
         // Posición inicial del triángulo
         updatePlayerPosition();
@@ -174,8 +165,8 @@ public class DoomStyleGame extends Application {
         timer.start();
     }
     private boolean isMouseAtCenter(MouseEvent e) {
-        double centerX = SCREEN_WIDTH / 2;
-        double centerY = SCREEN_HEIGHT / 2;
+        double centerX = (double) SCREEN_WIDTH / 2;
+        double centerY = (double) SCREEN_HEIGHT / 2;
         return e.getSceneX() == centerX && e.getSceneY() == centerY;
     }
     // Metodo para centar el cursos del mouse
@@ -214,11 +205,11 @@ public class DoomStyleGame extends Application {
             }
         }
         // Crear el triángulo para representar al jugador
-        playerTriangle.getPoints().addAll(new Double[]{
+        playerTriangle.getPoints().addAll(
                 0.0, 0.0,    // Punto 1 (punta del triángulo)
                 -5.0, 10.0,  // Punto 2
                 5.0, 10.0    // Punto 3
-        });
+        );
         playerTriangle.setFill(Color.LIGHTBLUE);
 
         root.getChildren().add(playerTriangle);
@@ -303,7 +294,7 @@ public class DoomStyleGame extends Application {
     private void drawWalls() {
         screenLayer.getChildren().clear(); // Limpia la capa de pantalla para las líneas verticales
         // Dibujar el cielo como un rectángulo
-        Rectangle sky = new Rectangle(0, 0, SCREEN_WIDTH, (double) SCREEN_HEIGHT);
+        Rectangle sky = new Rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
         sky.setFill(Color.ORANGE); // Color azul marino para el cielo
         screenLayer.getChildren().add(sky);
 
@@ -330,7 +321,7 @@ public class DoomStyleGame extends Application {
                 }
                 //Cambiar grosor de lineas verticales (muros)
                 if (hitWall == 0) {
-                    rayLength += 0.1;
+                    rayLength += 0.09;
                 }
             }
 
@@ -351,23 +342,21 @@ public class DoomStyleGame extends Application {
                 case 2 -> wallColor = Color.RED;
                 case 3 -> wallColor = Color.GREEN;
                 case 4 -> wallColor = Color.PURPLE;
-                case 9 -> {
-                    wallColor = getRandomColor();
-                    //hitTexturedWall = true;
-                }
+                case 9 -> //hitTexturedWall = true;
+                        wallColor = getRandomColor();
             }
 
             wallColor = wallColor.deriveColor(0, 1, brightness, 1);
 
-            if (hitTexturedWall) {
+            //if (hitTexturedWall) {
                 // Aquí deberías calcular qué parte de la textura mapear y luego dibujarla.
                 // Este es un lugar donde necesitarás una lógica más compleja para mapear correctamente la textura.
-                System.out.println("Muro con textura ");
-            } else {
+                //System.out.println("Muro con textura ");
+            //} else {
                 Line screenLine = new Line(i, lineTop, i, lineBottom);
                 screenLine.setStroke(wallColor); // Color para muros no texturizados
                 screenLayer.getChildren().add(screenLine);
-            }
+            //}
         }
     }
     // Método para generar un color aleatorio
@@ -382,10 +371,10 @@ public class DoomStyleGame extends Application {
     }
     //Metodo para dibujar el piso
     private void drawFloor(int i, double lineBottom) {
-        int x,y;
-        int xo=400;
-        int yo=300;
-        float fov = 200;
+        //int x,y;
+        //int xo=400;
+        //int yo=300;
+        //float fov = 200;
 
         Line floorLine = new Line(i, lineBottom, i, SCREEN_HEIGHT);
         floorLine.setStroke(Color.NAVY);

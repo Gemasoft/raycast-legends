@@ -5,9 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.gemasoft</groupId>
-    <artifactId>gema_engine</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <name>GemaEngine</name>
+    <artifactId>raycast_engine</artifactId>
+    <version>1.0</version>
+    <name>Raycast Engine</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -30,11 +30,13 @@
             <artifactId>javafx-media</artifactId>
             <version>17.0.6</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.github.almasb/fxgl -->
         <dependency>
             <groupId>com.github.almasb</groupId>
             <artifactId>fxgl</artifactId>
-            <version>17.1</version>
+            <version>21</version>
         </dependency>
+
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
