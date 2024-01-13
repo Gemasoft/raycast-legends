@@ -5,6 +5,9 @@ import com.almasb.fxgl.app.GameSettings;
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.input.UserAction;
 import com.almasb.fxgl.time.TimerAction;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -52,6 +55,8 @@ public class HelloApplication extends GameApplication {
 
     @Override
     protected void initGame() {
+
+
 
         //Creamos el cuadrado (jugador principal)
         square = new Rectangle(SQUARE_SIZE, SQUARE_SIZE);
