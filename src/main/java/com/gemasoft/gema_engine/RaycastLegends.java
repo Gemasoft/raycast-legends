@@ -4,6 +4,8 @@ import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -21,6 +23,8 @@ import javafx.stage.Stage;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
+
+import static javafx.scene.paint.Color.BLACK;
 
 public class RaycastLegends extends Application {
     private static final int[][] MAP = {
@@ -67,8 +71,8 @@ public class RaycastLegends extends Application {
     private static final double MAX_RAY_DISTANCE = 10.0; // Máxima distancia efectiva para el cálculo de la altura
     private final Polygon playerTriangle = new Polygon();
     //private List<Sprite> sprites = new ArrayList<>();
-    //private Canvas canvas;
-    //private GraphicsContext gc;
+    private Canvas canvas;
+    private GraphicsContext gc;
     private ImageView weaponImage;
     private boolean playerIsMoving;
     private static double VISION_ANGLE = 0;
@@ -82,6 +86,11 @@ public class RaycastLegends extends Application {
     private double lastMouseY = -1; // Para rastrear la última posición Y del ratón
     //private long lastUpdate = 0;
     //private final long DELAY = 10000000; // Retraso en nanosegundos
+    private Image wallTexture  = new Image("textures.jpg"); // Asegúrate de que la ruta sea correcta
+
+    public RaycastLegends() {
+    }
+
 
     @Override
     public void start(Stage primaryStage) {
@@ -90,9 +99,15 @@ public class RaycastLegends extends Application {
         Pane root = new Pane();
         Scene scene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
 
+        canvas = new Canvas(SCREEN_WIDTH, SCREEN_HEIGHT);
+        gc = canvas.getGraphicsContext2D();
+        gc.setImageSmoothing(false);
+
         screenLayer = new Pane(); // Capa para las líneas verticales
         screenLayer.setPrefSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+
         root.getChildren().add(screenLayer);
+        root.getChildren().add(canvas);
 
         // Esconde el cursor del mouse
         scene.setCursor(Cursor.CROSSHAIR);
@@ -150,8 +165,6 @@ public class RaycastLegends extends Application {
         updatePlayerPosition();
         // Titulo de la ventana
         primaryStage.setTitle("Raycast Legends");
-        primaryStage.setScene(scene);
-        primaryStage.show();
 
         AnimationTimer timer = new AnimationTimer() {
             @Override
@@ -161,6 +174,10 @@ public class RaycastLegends extends Application {
                 //castRays();
             }
         };
+
+        primaryStage.setScene(scene);
+
+        primaryStage.show();
         drawMiniMap(root);
         timer.start();
     }
@@ -187,6 +204,8 @@ public class RaycastLegends extends Application {
         MID_VERTICAL_SCREEN = primaryStage.getHeight() / 2;
         SCREEN_HEIGHT = (int) primaryStage.getHeight();
         SCREEN_WIDTH = (int) primaryStage.getWidth();
+        canvas.setHeight(SCREEN_HEIGHT);
+        canvas.setWidth(SCREEN_WIDTH);
     }
     private void drawMiniMap(Pane root) {
         for (int y = 0; y < MAP.length; y++) {
@@ -293,6 +312,8 @@ public class RaycastLegends extends Application {
     // Método para dibujar los muros
     private void drawWalls() {
         screenLayer.getChildren().clear(); // Limpia la capa de pantalla para las líneas verticales
+        gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+
         // Dibujar el cielo como un rectángulo
         Rectangle sky = new Rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
         sky.setFill(Color.ORANGE); // Color azul marino para el cielo
@@ -305,7 +326,6 @@ public class RaycastLegends extends Application {
             double rayAngle = startAngle + i * angleStep;
             double rayLength = 0;
             int hitWall = 0;
-            boolean hitTexturedWall = false;
 
             while (hitWall == 0) {
                 double checkX = playerPosX + rayLength * Math.cos(Math.toRadians(rayAngle));
@@ -331,32 +351,46 @@ public class RaycastLegends extends Application {
             double lineTop = ((MID_VERTICAL_SCREEN * 2) - lineHeight) / 2 + VISION_ANGLE;
             double lineBottom = lineTop + lineHeight;
 
+            // Calcular la coordenada X de la textura
+            double textureX = (playerPosX + rayLength * Math.cos(Math.toRadians(rayAngle))) % 1;
+            double textureY = (playerPosY + rayLength * Math.sin(Math.toRadians(rayAngle))) % 1;
+            // Ajustar para usar el índice correcto de la textura basado en el tipo de muro
+            int wallType = 0; // Obtener el tipo de muro golpeado por el rayo
+
+
             // Dibuja el piso
             drawFloor(i,lineBottom);
 
             // Ajustar el color basándose en la distancia
             double brightness = 1.0 - Math.min(1.0, correctedRayLength / MAX_RAY_DISTANCE);
-            Color wallColor = Color.WHITE;
             switch (hitWall){
-                case 1 -> wallColor = Color.BLUE;
-                case 2 -> wallColor = Color.RED;
-                case 3 -> wallColor = Color.GREEN;
-                case 4 -> wallColor = Color.PURPLE;
-                case 9 -> //hitTexturedWall = true;
-                        wallColor = getRandomColor();
+                case 1 -> {
+                    wallType = 4;
+                }
+                case 2 -> {
+                    wallType = 1;
+                }
+                case 3 -> {
+                    wallType = 5;
+                }
+                case 4 -> {
+                    wallType = 2;
+                }
+                case 9 -> {
+                    wallType = 8;
+                }
             }
 
-            wallColor = wallColor.deriveColor(0, 1, brightness, 1);
+            int textureIndexX = wallType % 16;
+            int textureIndexY = wallType / 16;
+            // Calcular la posición real en la imagen de textura
+            double actualTextureX = textureIndexX * 32 + textureX * 32;
+            double actualTextureY = textureIndexY * 32 + textureY * 32;
 
-            //if (hitTexturedWall) {
-                // Aquí deberías calcular qué parte de la textura mapear y luego dibujarla.
-                // Este es un lugar donde necesitarás una lógica más compleja para mapear correctamente la textura.
-                //System.out.println("Muro con textura ");
-            //} else {
-                Line screenLine = new Line(i, lineTop, i, lineBottom);
-                screenLine.setStroke(wallColor); // Color para muros no texturizados
-                screenLayer.getChildren().add(screenLine);
-            //}
+            // Aquí deberías calcular qué parte de la textura mapear y luego dibujarla.
+            // Este es un lugar donde necesitarás una lógica más compleja para mapear correctamente la textura.
+            gc.drawImage(wallTexture, actualTextureX, actualTextureY, 1, 32, i, lineTop, 1, lineHeight);
+
         }
     }
     // Método para generar un color aleatorio
